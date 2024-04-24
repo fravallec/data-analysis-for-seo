@@ -1,0 +1,33 @@
+WITH data_table AS (
+    SELECT
+        url,
+        SUM(clicks) AS clicks,
+        SUM(impressions) AS impressions
+    FROM `searchconsole.searchdata_url_impression`
+    WHERE data_date BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 16 MONTH) AND CURRENT_DATE()
+    GROUP BY url
+),
+category_clicks AS (
+    SELECT
+        CASE
+            WHEN url LIKE 'https://www.your-site.com/' THEN 'Homepage' ---ADD YOUR URL--
+            WHEN url LIKE 'https://www.your-site.com/blogs/%' THEN 'Blogs' ' 
+            WHEN url LIKE 'https://www.your-site.com/collections/%' THEN 'Collections' ' 
+            WHEN url LIKE 'https://www.your-site.com/products/%' THEN 'Products' ' 
+            WHEN url LIKE 'https://www.your-site.com/pages/%' THEN 'Pages' ' 
+            ELSE 'Other URLs'
+        END AS performance_category,
+        SUM(clicks) AS total_clicks
+    FROM data_table
+    GROUP BY performance_category
+),
+total_clicks AS (
+    SELECT SUM(total_clicks) AS total FROM category_clicks
+)
+
+SELECT
+    performance_category,
+    total_clicks,
+    ROUND((total_clicks / (SELECT total FROM total_clicks)) * 100, 2) AS percentage_of_total
+FROM category_clicks
+ORDER BY total_clicks DESC;

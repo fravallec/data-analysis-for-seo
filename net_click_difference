@@ -1,0 +1,39 @@
+WITH
+current_period AS (
+  SELECT
+    clicks,
+    ROW_NUMBER() OVER() as row_num
+  FROM
+   `project.dataset.table`
+  WHERE
+    data_date >= DATE_SUB(CURRENT_DATE(), INTERVAL 3 MONTH)
+    AND data_date < CURRENT_DATE()
+),
+previous_period AS (
+  SELECT
+    clicks,
+    ROW_NUMBER() OVER() as row_num
+  FROM
+   `project.dataset.table`
+  WHERE
+    data_date >= DATE_SUB(DATE_SUB(CURRENT_DATE(), INTERVAL 1 YEAR), INTERVAL 3 MONTH)
+    AND data_date < DATE_SUB(CURRENT_DATE(), INTERVAL 1 YEAR)
+),
+-- Calculate the differences
+click_differences AS (
+  SELECT
+    current_period_data.clicks - previous_period_data.clicks AS click_difference
+  FROM
+    current_period AS current_period_data
+  JOIN
+    previous_period AS previous_period_data
+  ON
+    current_period_data.row_num = previous_period_data.row_num
+)
+-- Summarize the results
+SELECT
+  SUM(CASE WHEN click_difference < 0 THEN ABS(click_difference) ELSE 0 END) AS total_click_loss,
+  SUM(CASE WHEN click_difference > 0 THEN click_difference ELSE 0 END) AS total_click_gain,
+  SUM(click_difference) AS net_click_difference
+FROM
+  click_differences

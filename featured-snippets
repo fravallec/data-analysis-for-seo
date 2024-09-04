@@ -1,0 +1,7 @@
+SELECT query,
+is_organic_shopping,
+is_review_snippet,
+is_product_snippets,
+is_merchant_listings
+FROM `searchconsole.searchdata_url_impression`
+WHERE is_organic_shopping = TRUE

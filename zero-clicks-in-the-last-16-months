@@ -1,0 +1,15 @@
+  SELECT 
+  url, 
+  SUM(impressions) AS total_impressions, 
+  SUM(clicks) AS total_clicks
+FROM 
+  `searchconsole.searchdata_url_impression`
+WHERE
+  data_date BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 16 MONTH) AND CURRENT_DATE()
+GROUP BY 
+  url
+HAVING 
+  total_clicks = 0 
+  AND total_impressions < 1000
+ORDER BY 
+  total_impressions DESC
